@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+
+</head>
+
+<body>
+  <div class="container vh-100">
+    <div class="row d-flex justify-content-center mt-3 p-3">
+      <div class="col-7">
+        <div class="mb-4">
+          <h3>Google Sheets</h3>
+        </div>
+        <div class="mb-3">
+          <form method="post" id="sheetsForm" class="row g-2 align-items-center">
+            <div class="col-12">
+              <div class="row d-flex justify-content-between">
+                <div class="col-4">
+                  <input type="text" class="form-control" id="submissionTitle" name="submissionTitle" placeholder="Submission Title"/>
+                </div>
+                <div class="col-4">
+                  <select class="form-select" id="imageCountSelect" name="imageCount" required>
+                    <option value="" selected>Select image count</option>
+                    <option value="2">2</option>
+                    <option value="4">4</option>
+                    <option value="6">6</option>
+                  </select>
+                </div>
+              </div>
+                
+
+            </div>
+            <div class="col-12">
+              <input type="text" class="form-control form-control-lg" name="sheetId" id="sheetId"
+                placeholder="Google Sheets URL" required>
+            </div>
+            <div class="col-12">
+              <button type="submit" id="sheetBtn" class="btn w-100 btn-lg btn-success"><span id="sheetBtnSpinner"
+                  class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                Search</button>
+            </div>
+          </form>
+        </div>
+        <div>
+          <h3>Search Results</h3>
+          <div id="resultContainer">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    resultContainer = document.querySelector("#resultContainer")
+    sheetBtn = document.querySelector("#sheetBtn")
+    sheetBtnSpinner = document.querySelector("#sheetBtnSpinner")
+    function setDefaultState() {
+      sheetBtn.removeAttribute("disabled", "")
+      sheetBtnSpinner.classList.add("d-none")
+      resultContainer.innerHTML = ""
+    }
+
+    document.getElementById("sheetsForm").addEventListener("submit", function (element, event) {
+      element.preventDefault()
+      setDefaultState()
+      sheetBtn.setAttribute("disabled", "")
+      sheetBtnSpinner.classList.remove("d-none")
+      fetch(window.location.href, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          method: "sheets",
+          sheetId: document.getElementById("sheetId").value,
+          imageCount: document.getElementById("imageCountSelect").value,
+          submissionTitle: document.getElementById("submissionTitle").value
+        })
+      })
+        .then(resp => resp.json())
+        .then(data => {
+
+          setDefaultState()
+          if (data['status_code'] == 200) {
+            resultA = document.createElement("a")
+            resultA.setAttribute("href", data["presentation_url"])
+            resultA.setAttribute("target", "_blank")
+            resultA.innerHTML = data["presentation_url"]
+            resultContainer.appendChild(resultA)
+            alert("Process Successful! Click the link below.")
+          }
+          else {
+            alert(data['error_message'])
+          }  
+          
+        })
+        .catch(err => {
+          console.log(err)
+          alert("There was an error. Please try again.")
+        })
+    })
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+    crossorigin="anonymous"></script>
+</body>
+
+</html>
